@@ -1,0 +1,74 @@
+QualityTrimmer- A windowed adaptive trimming tool for FASTQ files using quality
+
+Summary
+This program can be used to trim DNA sequence reads from modern sequencing technology platforms on the basis of the quality of the sequence reads.
+
+Introduction
+Most modern sequencing technologies produce reads in FASTQ format. An good overview of FASTQ format is available here: http://en.wikipedia.org/wiki/FASTQ_format. 
+
+An example FASTQ file:
+@HWI-EAS209_0006_FC706VJ:5:58:5894:21141#ATCACG/1
+TTAATTGGTAAATAAATCTCCTAATAGCTTAGATNTTACCTTNNNNNNNNNNTAGTTTCTTGAGATTTGTTGGGGGAGACATTTTTGTGATTGCCTTGAT
++HWI-EAS209_0006_FC706VJ:5:58:5894:21141#ATCACG/1
+efcfffffcfeefffcffffffddf`feed]`]_Ba_^__[YBBBBBBBBBBRTT\]][]dddd`ddd^dddadd^BBBBBBBBBBBBBBBBBBBBBBBB
+
+FASTQ format files contain the sequence name (first line), the sequence (second line), teh thrid line contains a '+' character and is optionally followed by the sequence name and the associated quality values corresponding to each base in the sequence (fourth line).  Base quality values provide the user with a measure of how accurate a given base-call is. The higher the quality value the greater confidence may be placed in this being a correct base call.
+
+Incorrectly called bases can lead to complications in downstream analysis such as mapping reads to a reference sequence or sequence assembly. A characteristic of many sequencing platforms is the presence of lower quality bases at either or both (5' and 3') ends of the sequence read. It is therefore desirable to use the base quality values to remove regions of lower quality at either end of the sequence read and retain the best quality regions of the sequence for further downstream analysis.
+
+
+QualityTrimmer is a tool to trim DNA sequences in FASTQ format on the basis of user defined thresholds and base quality values. The user defines the minimum sequence length to retain after trimming. Any reads shorter than this value will be removed from the data set.
+The user also defines a quality value threshold. This threshold is used in the determination of which bases to remove at either or both ends of the sequence read.
+
+The user may choose to discard sequences that include N base calls. An 'N' is only introduced where an accurate base-call cannot be made.
+
+QualityTrimmer also removes the second occurence of the sequence name, on the line beginning with '+'.
+
+It is important to be aware of differences in FASTQ format, specifially with reference to different quality encoding systems. Tehcnology changes have been swift and agreed standards were not always in place on how to encode quality values. Quality values are encoded by ASCII characters to which an offset is added. This offset is different for different FASTQ formats.
+The following diagram is from http://en.wikipedia.org/wiki/FASTQ_format and displays how the different FASTQ formats are related.
+
+  SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.....................................................
+  ..........................XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......................
+  ...............................IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII......................
+  .................................JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ......................
+  ..LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL....................................................
+  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+  |                         |    |        |                              |                     |
+ 33                        59   64       73                            104                   126
+  0........................26...31.......40                                
+                           -5....0........9.............................40 
+                                 0........9.............................40 
+                                    3.....9.............................40 
+  0.2......................26...31........41                               
+
+ S - Sanger        Phred+33,  raw reads typically (0, 40)
+ X - Solexa        Solexa+64, raw reads typically (-5, 40)
+ I - Illumina 1.3+ Phred+64,  raw reads typically (0, 40)
+ J - Illumina 1.5+ Phred+64,  raw reads typically (3, 40)
+     with 0=unused, 1=unused, 2=Read Segment Quality Control Indicator (bold) 
+ L - Illumina 1.8+ Phred+33,  raw reads typically (0, 41)
+
+
+QualityTrimmer can accept 4 types of quality values: Illumina 1.3+, Illumina 1.5+, Sanger and Solexa.
+
+The user specifies the type of encoding as an input parameter.
+
+QualityTrimmer uses a sliding-window approach to quality trimming. A window size, equal to 10% of the sequence read, is calculated. If reads are less than or equal to 10 bases, then the window size is set to the length of the read.If 10% of the sequence read is an an integer, then the value is rounded up to the next integer.
+
+The window slides along the sequence until the average quality in the window rises above the user-defined quality value threshold. At this point, the exact location in the window where the quality rise occurs is determined and the sequence is clipped to the left of the base (the 5' quality clip) where the quality increase occurs.Optionally, the 5' quality clip can be disabled
+
+The window then moves along the sequence to the point where the average quality within the window falls below the user-defined quality threshold. Once again, the exact location within the window where the quality drops below the threshold is determined and a sequence clip is introduced to the right of the base (the 3' quality clip) at which the quality decrease occurs.
+
+At this point, the length of the retained sequence is assessed to see if it is above the user-defined minimum length threshold. It the length is below this threshold, the sequence is removed from the dataset.
+
+
+ 
+
+
+
+
+
+
+Note that Sickle will remove the 2nd fastq record header (on the "+" line) and replace it with simply a "+". This is the default format for CASAVA >= 1.8.
+
+Sickle also supports gzipped file inputs. There is also a sickle.xml file included in the package that can be used to add sickle to your local Galaxy server.
