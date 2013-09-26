@@ -61,6 +61,33 @@ The window then moves along the sequence to the point where the average quality 
 
 At this point, the length of the retained sequence is assessed to see if it is above the user-defined minimum length threshold. It the length is below this threshold, the sequence is removed from the dataset.
 
+Usage
+
+
+Running QualityTrimmer by itself will print the help:
+
+qualitytrimmer
+
+
+QualityTrimmer takes an input fastq file and outputs a trimmed version of that file. 
+It  has options to change the length and quality thresholds for trimming, as well as disabling 5'-trimming and enabling removal of sequences with Ns.
+The quality base encoding method must also be specified
+
+The input parameters, their flags and defaults are:
+An input directory		-i 		(default: current working directory)
+An input file			-f 		(default: test.fastq)
+An output file			-o 		(default:test.out.fastq)
+Minimum Length Threshold-n 		(default:20)
+Quality Value Threshold	-q		(default: 20)
+remove N's				-n  	(default:FALSE)
+perform 5' clip: 		-p 		(default:TRUE)
+encoding:				-e		(default:Sanger)
+
+Examples
+
+qualitytrimmer -i input_dir-f input_file.fastq -e illumina -o test.out.fastq -q 22 -l 40
+qualitytrimmer -i input_dir -f input_file.fastq -e illumina -o test.out.fastq -q 33 -l 40 -n TRUE -p FALSE
+
 
  
 
@@ -69,6 +96,6 @@ At this point, the length of the retained sequence is assessed to see if it is a
 
 
 
-Note that Sickle will remove the 2nd fastq record header (on the "+" line) and replace it with simply a "+". This is the default format for CASAVA >= 1.8.
 
-Sickle also supports gzipped file inputs. There is also a sickle.xml file included in the package that can be used to add sickle to your local Galaxy server.
+
+
